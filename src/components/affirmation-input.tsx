@@ -44,12 +44,12 @@ export function AffirmationInput({ onAffirmationProcessed }: AffirmationInputPro
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Enter your affirmation:</Text>
+      <Text style={styles.label}>Enter your intention:</Text>
       <TextInput
         style={styles.input}
         value={affirmation}
         onChangeText={handleAffirmationChange}
-        placeholder="e.g., I am a fighter"
+        placeholder="e.g., I am successful"
         multiline
         maxLength={100}
         returnKeyType="done"
