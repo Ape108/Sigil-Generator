@@ -95,6 +95,21 @@ function calculateDistance(start: Position, end: Position): number {
   );
 }
 
+// Add this helper function to calculate distance from center
+function calculateDistanceFromCenter(point: Position, center: Position): number {
+  return Math.sqrt(
+    Math.pow(point.x - center.x, 2) + Math.pow(point.y - center.y, 2)
+  );
+}
+
+// Add this function to calculate the sigil's radius
+function calculateSigilRadius(numbers: string, numberPositions: NumberPosition, center: Position): number {
+  if (!numbers || Object.keys(numberPositions).length === 0) return 0;
+  
+  const points = numbers.split('').map(num => numberPositions[Number(num)]);
+  return Math.max(...points.map(point => calculateDistanceFromCenter(point, center)));
+}
+
 // Add this near the top with other animated components
 const AnimatedLine = Animated.createAnimatedComponent(Line);
 const AnimatedPath = Animated.createAnimatedComponent(Path);
@@ -112,6 +127,7 @@ export function SigilDrawingScreen({ route }: Props) {
   const [showGrid, setShowGrid] = useState(true);
   const gridOpacity = useRef(new Animated.Value(1)).current;
   const sigilScale = useRef(new Animated.Value(1)).current;
+  const [scaleFactorState, setScaleFactorState] = useState(1);
 
   // Calculate positions of all numbers in the magic square
   const calculateNumberPositions = (size: number) => {
@@ -128,10 +144,11 @@ export function SigilDrawingScreen({ route }: Props) {
   };
 
   useEffect(() => {
-    // Calculate cell size based on screen width and square size
-    const screenWidth = Dimensions.get('window').width - 64; // Accounting for padding
+    // Calculate cell size based on container width instead of screen width
+    const containerWidth = Dimensions.get('window').width * 0.9; // 90% of screen width
+    const maxWidth = Math.min(containerWidth, 500); // respect maxWidth
     const squareSize = magicSquare.length;
-    const newCellSize = Math.floor(screenWidth / squareSize);
+    const newCellSize = Math.floor(maxWidth / squareSize);
     setCellSize(newCellSize);
     calculateNumberPositions(newCellSize);
   }, [magicSquare]);
@@ -184,10 +201,24 @@ export function SigilDrawingScreen({ route }: Props) {
     });
   }, [isDrawing, lineSegments]);
 
-  // Add circle animation
+  // Calculate scale factor when number positions are set
+  useEffect(() => {
+    if (!numbers || Object.keys(numberPositions).length === 0) return;
+
+    const squareSize = cellSize * magicSquare.length;
+    const center = { x: squareSize / 2, y: squareSize / 2 };
+    const sigilRadius = calculateSigilRadius(numbers, numberPositions, center);
+    const circleSize = Math.min(squareSize - 40, 300);
+    const targetRadius = (circleSize / 2) - 20; // 20px padding between sigil and circle
+    
+    // Calculate scale factor needed to fit sigil within circle with padding
+    const newScaleFactor = targetRadius / sigilRadius;
+    setScaleFactorState(newScaleFactor);
+  }, [numbers, numberPositions, cellSize, magicSquare.length]);
+
+  // Update the animation to use the calculated scale factor
   useEffect(() => {
     if (isSigilComplete) {
-      // Sequence: fade grid -> scale sigil -> draw circle
       Animated.sequence([
         // Fade out grid
         Animated.timing(gridOpacity, {
@@ -196,9 +227,9 @@ export function SigilDrawingScreen({ route }: Props) {
           useNativeDriver: true,
           easing: Easing.bezier(0.4, 0, 0.2, 1)
         }),
-        // Scale down sigil
+        // Scale and center sigil
         Animated.timing(sigilScale, {
-          toValue: 0.6, // Reduced from 0.7 to 0.6 for more padding
+          toValue: scaleFactorState,
           duration: 500,
           useNativeDriver: true,
           easing: Easing.bezier(0.4, 0, 0.2, 1)
@@ -212,10 +243,10 @@ export function SigilDrawingScreen({ route }: Props) {
         })
       ]).start(() => setShowGrid(false));
     }
-  }, [isSigilComplete]);
+  }, [isSigilComplete, scaleFactorState]);
 
   const squareSize = cellSize * magicSquare.length;
-  const circleSize = Math.min(squareSize - 80, 300); // Constant circle size with padding
+  const circleSize = Math.min(squareSize - 40, 300);
   const radius = circleSize / 2;
   const center = squareSize / 2;
 
@@ -231,7 +262,10 @@ export function SigilDrawingScreen({ route }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.squareContainer}>
-        <Animated.View style={{ opacity: gridOpacity }}>
+        <Animated.View style={[
+          styles.gridContainer,
+          { opacity: gridOpacity }
+        ]}>
           {showGrid && magicSquare.map((row, rowIndex) => (
             <View key={rowIndex} style={styles.row}>
               {row.map((number, colIndex) => (
@@ -247,11 +281,14 @@ export function SigilDrawingScreen({ route }: Props) {
         </Animated.View>
 
         <Svg
-          style={StyleSheet.absoluteFill}
           width={squareSize}
           height={squareSize}
+          style={[
+            StyleSheet.absoluteFill,
+            styles.svgContainer
+          ]}
         >
-          <G transform={`translate(${16}, ${16})`}>
+          <G>
             <AnimatedPath
               d={circlePath}
               stroke={COLORS.primary}
@@ -265,25 +302,23 @@ export function SigilDrawingScreen({ route }: Props) {
             />
 
             <AnimatedG
-              transform={sigilScale.interpolate({
-                inputRange: [0, 1],
-                outputRange: [
-                  `translate(${center}, ${center}) scale(${(radius * 1.5) / squareSize}) translate(-${center}, -${center})`,
-                  `translate(${center}, ${center}) scale(1, 1) translate(-${center}, -${center})`
-                ]
-              })}
+              transform={[{
+                translateX: sigilScale.interpolate({
+                  inputRange: [scaleFactorState, 1],
+                  outputRange: [center * (1 - scaleFactorState), 0]
+                })
+              }, {
+                translateY: sigilScale.interpolate({
+                  inputRange: [scaleFactorState, 1],
+                  outputRange: [center * (1 - scaleFactorState), 0]
+                })
+              }, {
+                scale: sigilScale.interpolate({
+                  inputRange: [scaleFactorState, 1],
+                  outputRange: [scaleFactorState, 1]
+                })
+              }]}
             >
-              {numbers && numberPositions[Number(numbers[0])] && (
-                <Circle
-                  cx={numberPositions[Number(numbers[0])].x}
-                  cy={numberPositions[Number(numbers[0])].y}
-                  r={8}
-                  stroke={COLORS.primary}
-                  strokeWidth={3}
-                  fill="none"
-                />
-              )}
-
               {lineSegments.map((segment, index) => (
                 <AnimatedLine
                   key={index}
@@ -296,6 +331,17 @@ export function SigilDrawingScreen({ route }: Props) {
                   opacity={segment.progress}
                 />
               ))}
+
+              {numbers && numberPositions[Number(numbers[0])] && (
+                <Circle
+                  cx={numberPositions[Number(numbers[0])].x}
+                  cy={numberPositions[Number(numbers[0])].y}
+                  r={8}
+                  stroke={COLORS.primary}
+                  strokeWidth={3}
+                  fill={COLORS.background}
+                />
+              )}
 
               {!isDrawing && numbers && numberPositions[Number(numbers[numbers.length - 1])] && (
                 <Circle
@@ -319,11 +365,12 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
   },
   squareContainer: {
-    position: 'relative', // For absolute positioning of SVG
-    padding: 16,
+    position: 'relative',
+    aspectRatio: 1,
+    width: '90%',
+    maxWidth: 500,
     backgroundColor: COLORS.surface,
     borderRadius: 8,
     elevation: 4,
@@ -331,6 +378,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
   },
   row: {
     flexDirection: 'row',
@@ -346,5 +396,14 @@ const styles = StyleSheet.create({
   cellText: {
     color: COLORS.text.primary,
     fontSize: 16,
+  },
+  gridContainer: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  svgContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 }); 

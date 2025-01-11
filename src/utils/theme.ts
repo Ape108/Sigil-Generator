@@ -9,7 +9,8 @@ export const COLORS = {
     secondary: '#CBD5E0', // light gray
     accent: '#E9D8FD'     // very light purple
   },
-  border: '#4A5568'     // medium blue-gray
+  border: '#4A5568',
+  shadow: '#000000'
 };
 
 // Optional: Add some mystical symbols for later use
