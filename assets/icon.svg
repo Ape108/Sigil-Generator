@@ -1,0 +1,6 @@
+// icon.png - A simple mystical star symbol
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" fill="#1F2937"/>
+  <path d="M512 100L614 404L932 404L674 596L776 900L512 708L248 900L350 596L92 404L410 404L512 100Z" 
+        fill="#9F7AEA"/>
+</svg> 
