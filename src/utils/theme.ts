@@ -7,7 +7,8 @@ export const COLORS = {
   text: {
     primary: '#F7FAFC',   // off-white
     secondary: '#CBD5E0', // light gray
-    accent: '#E9D8FD'     // very light purple
+    accent: '#E9D8FD',    // very light purple
+    onPrimary: '#FFFFFF'  // white text on primary color
   },
   border: '#4A5568',
   shadow: '#000000'
