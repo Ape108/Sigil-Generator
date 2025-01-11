@@ -3,16 +3,15 @@ import { View, StyleSheet, Text, Dimensions, Animated, Easing } from 'react-nati
 import { COLORS } from '../utils/theme';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Svg, { Circle, Line, G, Path } from 'react-native-svg';
-
-type RootStackParamList = {
-  SigilCreator: undefined;
-  SigilDrawing: {
-    planetName: string;
-    numbers: string;
-  };
-};
+import { useNavigation } from '@react-navigation/native';
+import type { SigilData } from '../types/sigil';
+import type { RootStackParamList } from '../types/navigation';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SigilDrawing'>;
+
+// Add this type for the navigation prop
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'SigilDrawing'>;
 
 const MAGIC_SQUARES = {
   "Saturn": [
@@ -116,18 +115,17 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedG = Animated.createAnimatedComponent(G);
 
 export function SigilDrawingScreen({ route }: Props) {
+  // Update the navigation type
+  const navigation = useNavigation<NavigationProp>();
   const { planetName, numbers } = route.params;
   const magicSquare = MAGIC_SQUARES[planetName as keyof typeof MAGIC_SQUARES];
   const [numberPositions, setNumberPositions] = useState<NumberPosition>({});
   const [cellSize, setCellSize] = useState(40);
   const [lineSegments, setLineSegments] = useState<LineSegment[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [circleProgress] = useState(new Animated.Value(0));
   const [isSigilComplete, setIsSigilComplete] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
   const gridOpacity = useRef(new Animated.Value(1)).current;
-  const sigilScale = useRef(new Animated.Value(1)).current;
-  const [scaleFactorState, setScaleFactorState] = useState(1);
 
   // Calculate positions of all numbers in the magic square
   const calculateNumberPositions = (size: number) => {
@@ -175,14 +173,59 @@ export function SigilDrawingScreen({ route }: Props) {
     setIsDrawing(true);
   }, [numbers, numberPositions]);
 
-  // Animate line drawing
+  const calculateSigilBounds = () => {
+    const points = lineSegments.map(seg => [seg.start, seg.end]).flat();
+    return points.reduce((bounds, point) => ({
+      minX: Math.min(bounds.minX, point.x),
+      maxX: Math.max(bounds.maxX, point.x),
+      minY: Math.min(bounds.minY, point.y),
+      maxY: Math.max(bounds.maxY, point.y)
+    }), {
+      minX: points[0].x,
+      maxX: points[0].x,
+      minY: points[0].y,
+      maxY: points[0].y
+    });
+  };
+
+  const saveSigilAndNavigate = () => {
+    const sigilData: SigilData = {
+      lines: lineSegments.map(segment => ({
+        start: { x: segment.start.x, y: segment.start.y },
+        end: { x: segment.end.x, y: segment.end.y }
+      })),
+      startPoint: numberPositions[Number(numbers[0])],
+      endPoint: numberPositions[Number(numbers[numbers.length - 1])],
+      bounds: calculateSigilBounds(),
+      planetName
+    };
+
+    navigation.navigate('SigilViewer', { sigilData });
+  };
+
+  // Modify the completion animation to navigate after fade
+  useEffect(() => {
+    if (isSigilComplete) {
+      Animated.timing(gridOpacity, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+        easing: Easing.bezier(0.4, 0, 0.2, 1)
+      }).start(() => {
+        setShowGrid(false);
+        saveSigilAndNavigate();
+      });
+    }
+  }, [isSigilComplete]);
+
+  // Put back the line drawing animation
   useEffect(() => {
     if (!isDrawing || lineSegments.length === 0) return;
 
     const BASE_SPEED = 0.3;
     const MIN_DURATION = 200;
     
-    const animations = lineSegments.map((segment, index) => {
+    const animations = lineSegments.map((segment: LineSegment, index: number) => {
       const distance = calculateDistance(segment.start, segment.end);
       const duration = Math.max(MIN_DURATION, distance / BASE_SPEED);
       
@@ -201,63 +244,7 @@ export function SigilDrawingScreen({ route }: Props) {
     });
   }, [isDrawing, lineSegments]);
 
-  // Calculate scale factor when number positions are set
-  useEffect(() => {
-    if (!numbers || Object.keys(numberPositions).length === 0) return;
-
-    const squareSize = cellSize * magicSquare.length;
-    const center = { x: squareSize / 2, y: squareSize / 2 };
-    const sigilRadius = calculateSigilRadius(numbers, numberPositions, center);
-    const circleSize = Math.min(squareSize - 40, 300);
-    const targetRadius = (circleSize / 2) - 20; // 20px padding between sigil and circle
-    
-    // Calculate scale factor needed to fit sigil within circle with padding
-    const newScaleFactor = targetRadius / sigilRadius;
-    setScaleFactorState(newScaleFactor);
-  }, [numbers, numberPositions, cellSize, magicSquare.length]);
-
-  // Update the animation to use the calculated scale factor
-  useEffect(() => {
-    if (isSigilComplete) {
-      Animated.sequence([
-        // Fade out grid
-        Animated.timing(gridOpacity, {
-          toValue: 0,
-          duration: 500,
-          useNativeDriver: true,
-          easing: Easing.bezier(0.4, 0, 0.2, 1)
-        }),
-        // Scale and center sigil
-        Animated.timing(sigilScale, {
-          toValue: scaleFactorState,
-          duration: 500,
-          useNativeDriver: true,
-          easing: Easing.bezier(0.4, 0, 0.2, 1)
-        }),
-        // Draw circle
-        Animated.timing(circleProgress, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-          easing: Easing.bezier(0.4, 0, 0.2, 1)
-        })
-      ]).start(() => setShowGrid(false));
-    }
-  }, [isSigilComplete, scaleFactorState]);
-
   const squareSize = cellSize * magicSquare.length;
-  const circleSize = Math.min(squareSize - 40, 300);
-  const radius = circleSize / 2;
-  const center = squareSize / 2;
-
-  // Create circle path with fixed size
-  const circlePath = `
-    M ${center} ${center - radius}
-    A ${radius} ${radius} 0 0 1 ${center + radius} ${center}
-    A ${radius} ${radius} 0 0 1 ${center} ${center + radius}
-    A ${radius} ${radius} 0 0 1 ${center - radius} ${center}
-    A ${radius} ${radius} 0 0 1 ${center} ${center - radius}
-  `;
 
   return (
     <View style={styles.container}>
@@ -289,69 +276,38 @@ export function SigilDrawingScreen({ route }: Props) {
           ]}
         >
           <G>
-            <AnimatedPath
-              d={circlePath}
-              stroke={COLORS.primary}
-              strokeWidth={2}
-              fill="none"
-              strokeDasharray={[2 * Math.PI * radius]}
-              strokeDashoffset={circleProgress.interpolate({
-                inputRange: [0, 1],
-                outputRange: [2 * Math.PI * radius, 0]
-              })}
-            />
+            {lineSegments.map((segment, index) => (
+              <AnimatedLine
+                key={index}
+                x1={segment.start.x}
+                y1={segment.start.y}
+                x2={segment.end.x}
+                y2={segment.end.y}
+                stroke={COLORS.primary}
+                strokeWidth={3}
+                opacity={segment.progress}
+              />
+            ))}
 
-            <AnimatedG
-              transform={[{
-                translateX: sigilScale.interpolate({
-                  inputRange: [scaleFactorState, 1],
-                  outputRange: [center * (1 - scaleFactorState), 0]
-                })
-              }, {
-                translateY: sigilScale.interpolate({
-                  inputRange: [scaleFactorState, 1],
-                  outputRange: [center * (1 - scaleFactorState), 0]
-                })
-              }, {
-                scale: sigilScale.interpolate({
-                  inputRange: [scaleFactorState, 1],
-                  outputRange: [scaleFactorState, 1]
-                })
-              }]}
-            >
-              {lineSegments.map((segment, index) => (
-                <AnimatedLine
-                  key={index}
-                  x1={segment.start.x}
-                  y1={segment.start.y}
-                  x2={segment.end.x}
-                  y2={segment.end.y}
-                  stroke={COLORS.primary}
-                  strokeWidth={3}
-                  opacity={segment.progress}
-                />
-              ))}
+            {numbers && numberPositions[Number(numbers[0])] && (
+              <Circle
+                cx={numberPositions[Number(numbers[0])].x}
+                cy={numberPositions[Number(numbers[0])].y}
+                r={8}
+                stroke={COLORS.primary}
+                strokeWidth={3}
+                fill={COLORS.background}
+              />
+            )}
 
-              {numbers && numberPositions[Number(numbers[0])] && (
-                <Circle
-                  cx={numberPositions[Number(numbers[0])].x}
-                  cy={numberPositions[Number(numbers[0])].y}
-                  r={8}
-                  stroke={COLORS.primary}
-                  strokeWidth={3}
-                  fill={COLORS.background}
-                />
-              )}
-
-              {!isDrawing && numbers && numberPositions[Number(numbers[numbers.length - 1])] && (
-                <Circle
-                  cx={numberPositions[Number(numbers[numbers.length - 1])].x}
-                  cy={numberPositions[Number(numbers[numbers.length - 1])].y}
-                  r={8}
-                  fill={COLORS.primary}
-                />
-              )}
-            </AnimatedG>
+            {!isDrawing && numbers && numberPositions[Number(numbers[numbers.length - 1])] && (
+              <Circle
+                cx={numberPositions[Number(numbers[numbers.length - 1])].x}
+                cy={numberPositions[Number(numbers[numbers.length - 1])].y}
+                r={8}
+                fill={COLORS.primary}
+              />
+            )}
           </G>
         </Svg>
       </View>

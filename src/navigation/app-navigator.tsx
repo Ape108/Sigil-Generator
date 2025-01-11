@@ -2,9 +2,11 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MainMenuScreen } from '../screens/main-menu';
 import { SigilCreatorScreen } from '../screens/sigil-creator';
 import { SigilDrawingScreen } from '../screens/sigil-drawing-screen';
+import SigilViewerScreen from '../screens/sigil-viewer-screen';
 import { SettingsScreen } from '../screens/settings';
 import { DonateScreen } from '../screens/donate';
 import { COLORS } from '../utils/theme';
+import type { SigilData } from '../types/sigil';
 
 type RootStackParamList = {
   MainMenu: undefined;
@@ -12,6 +14,9 @@ type RootStackParamList = {
   SigilDrawing: {
     planetName: string;
     numbers: string;
+  };
+  SigilViewer: {
+    sigilData: SigilData;
   };
   Settings: undefined;
   Donate: undefined;
@@ -50,6 +55,11 @@ export function AppNavigator() {
         name="SigilDrawing" 
         component={SigilDrawingScreen}
         options={{ title: 'Draw Sigil' }}
+      />
+      <Stack.Screen 
+        name="SigilViewer" 
+        component={SigilViewerScreen}
+        options={{ title: 'View Sigil' }}
       />
       <Stack.Screen 
         name="Settings" 
