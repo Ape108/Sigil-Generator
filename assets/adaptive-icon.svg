@@ -1,0 +1,6 @@
+// adaptive-icon.png - A simpler version of the icon for Android
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" fill="#1F2937"/>
+  <path d="M512 200L589 431L832 431L636 574L713 805L512 662L311 805L388 574L192 431L435 431L512 200Z" 
+        fill="#9F7AEA"/>
+</svg> 
