@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Switch, Text, Dimensions } from 'react-native';
+import { View, StyleSheet, Switch, Text, Dimensions, TouchableOpacity } from 'react-native';
 import Svg, { Circle, Line, G } from 'react-native-svg';
-import { COLORS } from '../utils/theme';
+import { useTheme } from '../contexts/theme-context';
 import type { SigilData } from '../types/sigil';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types/navigation';
@@ -9,8 +9,8 @@ import type { RootStackParamList } from '../types/navigation';
 type Props = NativeStackScreenProps<RootStackParamList, 'SigilViewer'>;
 
 export default function SigilViewerScreen({ route }: Props) {
-  const { sigilData } = route.params;
-  const [showCircle, setShowCircle] = useState(false);
+  const { colors } = useTheme();
+  const [showCircle, setShowCircle] = useState(true);
 
   // Get screen dimensions
   const screenWidth = Dimensions.get('window').width;
@@ -19,13 +19,13 @@ export default function SigilViewerScreen({ route }: Props) {
 
   // Calculate sigil center from bounds
   const sigilCenter = {
-    x: (sigilData.bounds.minX + sigilData.bounds.maxX) / 2,
-    y: (sigilData.bounds.minY + sigilData.bounds.maxY) / 2
+    x: (route.params.sigilData.bounds.minX + route.params.sigilData.bounds.maxX) / 2,
+    y: (route.params.sigilData.bounds.minY + route.params.sigilData.bounds.maxY) / 2
   };
 
   // Calculate sigil dimensions
-  const sigilWidth = sigilData.bounds.maxX - sigilData.bounds.minX;
-  const sigilHeight = sigilData.bounds.maxY - sigilData.bounds.minY;
+  const sigilWidth = route.params.sigilData.bounds.maxX - route.params.sigilData.bounds.minX;
+  const sigilHeight = route.params.sigilData.bounds.maxY - route.params.sigilData.bounds.minY;
   
   // Use the larger dimension to ensure circle encompasses everything
   const radius = Math.max(sigilWidth, sigilHeight);
@@ -46,6 +46,45 @@ export default function SigilViewerScreen({ route }: Props) {
   const offsetX = (viewSize / 2) - (sigilCenter.x * scaleFactor);
   const offsetY = (viewSize / 2) - (sigilCenter.y * scaleFactor);
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    svgWrapper: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    controls: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+      gap: 8,
+    },
+    label: {
+      color: colors.text.primary,
+      fontSize: 16,
+    },
+    toggleButton: {
+      position: 'absolute',
+      bottom: 40,
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      backgroundColor: colors.surface,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    toggleButtonText: {
+      color: colors.text.primary,
+      fontSize: 16,
+      fontWeight: '500',
+    },
+  });
+
   return (
     <View style={styles.container}>
       <View style={styles.svgWrapper}>
@@ -58,38 +97,38 @@ export default function SigilViewerScreen({ route }: Props) {
                 cx={sigilCenter.x}
                 cy={sigilCenter.y}
                 r={radius}
-                stroke={COLORS.primary}
+                stroke={colors.accent}
                 strokeWidth={2 / scaleFactor}
                 fill="none"
               />
             )}
             
-            {sigilData.lines.map((line, index) => (
+            {route.params.sigilData.lines.map((line, index) => (
               <Line
                 key={index}
                 x1={line.start.x}
                 y1={line.start.y}
                 x2={line.end.x}
                 y2={line.end.y}
-                stroke={COLORS.primary}
+                stroke={colors.accent}
                 strokeWidth={3 / scaleFactor}
               />
             ))}
 
             <Circle
-              cx={sigilData.startPoint.x}
-              cy={sigilData.startPoint.y}
+              cx={route.params.sigilData.startPoint.x}
+              cy={route.params.sigilData.startPoint.y}
               r={8 / scaleFactor}
-              stroke={COLORS.primary}
+              stroke={colors.accent}
               strokeWidth={3 / scaleFactor}
-              fill={COLORS.background}
+              fill={colors.background}
             />
 
             <Circle
-              cx={sigilData.endPoint.x}
-              cy={sigilData.endPoint.y}
+              cx={route.params.sigilData.endPoint.x}
+              cy={route.params.sigilData.endPoint.y}
               r={8 / scaleFactor}
-              fill={COLORS.primary}
+              fill={colors.accent}
             />
           </G>
         </Svg>
@@ -100,31 +139,9 @@ export default function SigilViewerScreen({ route }: Props) {
         <Switch
           value={showCircle}
           onValueChange={setShowCircle}
-          trackColor={{ false: COLORS.surface, true: COLORS.primary }}
+          trackColor={{ false: colors.surface, true: colors.accent }}
         />
       </View>
     </View>
   );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  svgWrapper: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  controls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    gap: 8,
-  },
-  label: {
-    color: COLORS.text.primary,
-    fontSize: 16,
-  },
-}); 
+} 

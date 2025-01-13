@@ -1,35 +1,113 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { PLANET_DATA } from '../../types/planets';
-import { COLORS } from '../../utils/theme';
+import { View, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { PLANETS, Planet } from '../../types/planets';
+import { useTheme } from '../../contexts/theme-context';
 
-export function PlanetSelector({ onSelect }: { onSelect: (planetName: string) => void }) {
+interface PlanetSelectorProps {
+  onSelect: (planetName: string) => void;
+}
+
+export function PlanetSelector({ onSelect }: PlanetSelectorProps) {
+  const { colors } = useTheme();
   const [expandedPlanet, setExpandedPlanet] = useState<string | null>(null);
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Select a Planet</Text>
-      <Text style={styles.subtitle}>Choose the planetary energy that best matches your intention</Text>
-      
-      {PLANET_DATA.map((planet) => (
-        <View key={planet.name} style={styles.planetCard}>
-          <TouchableOpacity 
-            onPress={() => setExpandedPlanet(expandedPlanet === planet.name ? null : planet.name)}
-            style={styles.planetHeader}
-          >
-            <Text style={styles.planetName}>{planet.name}</Text>
-            <Text style={styles.planetTitle}>{planet.title}</Text>
-          </TouchableOpacity>
+  const togglePlanet = (planetName: string) => {
+    setExpandedPlanet(expandedPlanet === planetName ? null : planetName);
+  };
 
+  const styles = StyleSheet.create({
+    container: {
+      marginTop: 24,
+    },
+    planetCard: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 14,
+      marginBottom: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    headerContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 2,
+    },
+    planetTitle: {
+      fontSize: 19,
+      fontWeight: 'bold',
+      color: colors.text.primary,
+    },
+    planetSubtitle: {
+      fontSize: 15,
+      color: colors.text.secondary,
+      fontStyle: 'italic',
+    },
+    expandedContent: {
+      marginTop: 14,
+    },
+    description: {
+      fontSize: 14,
+      color: colors.text.primary,
+      marginBottom: 12,
+      lineHeight: 20,
+    },
+    keywordsContainer: {
+      marginBottom: 12,
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 6,
+    },
+    keyword: {
+      fontSize: 12,
+      color: colors.text.secondary,
+      backgroundColor: colors.primary + '20',
+      paddingHorizontal: 10,
+      paddingVertical: 3,
+      borderRadius: 12,
+    },
+    selectButton: {
+      backgroundColor: colors.primary,
+      padding: 10,
+      borderRadius: 6,
+      alignItems: 'center',
+    },
+    selectButtonText: {
+      color: colors.text.onPrimary,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+  });
+
+  return (
+    <ScrollView style={styles.container}>
+      {PLANETS.map((planet: Planet) => (
+        <TouchableOpacity 
+          key={planet.name} 
+          style={styles.planetCard}
+          onPress={() => togglePlanet(planet.name)}
+        >
+          <View style={styles.headerContainer}>
+            <Text style={styles.planetTitle}>{planet.name}</Text>
+            <Text style={styles.planetSubtitle}>{planet.title}</Text>
+          </View>
+          
           {expandedPlanet === planet.name && (
             <View style={styles.expandedContent}>
               <Text style={styles.description}>{planet.description}</Text>
               <View style={styles.keywordsContainer}>
                 {planet.keywords.map((keyword) => (
-                  <Text key={keyword} style={styles.keyword}>• {keyword}</Text>
+                  <Text key={keyword} style={styles.keyword}>
+                    {keyword}
+                  </Text>
                 ))}
               </View>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.selectButton}
                 onPress={() => onSelect(planet.name)}
               >
@@ -37,92 +115,8 @@ export function PlanetSelector({ onSelect }: { onSelect: (planetName: string) =>
               </TouchableOpacity>
             </View>
           )}
-        </View>
+        </TouchableOpacity>
       ))}
-    </View>
+    </ScrollView>
   );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    marginTop: 24,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: COLORS.text.primary,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-  },
-  subtitle: {
-    fontSize: 16,
-    marginBottom: 16,
-    color: COLORS.text.secondary,
-  },
-  planetCard: {
-    marginBottom: 12,
-    borderRadius: 8,
-    backgroundColor: COLORS.surface,
-    elevation: 2,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  planetHeader: {
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  planetName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.text.primary,
-  },
-  planetTitle: {
-    fontSize: 14,
-    color: COLORS.text.secondary,
-  },
-  expandedContent: {
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    backgroundColor: 'rgba(159, 122, 234, 0.05)',
-  },
-  description: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 12,
-    color: COLORS.text.primary,
-  },
-  keywordsContainer: {
-    marginBottom: 16,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  keyword: {
-    fontSize: 14,
-    color: COLORS.text.secondary,
-    backgroundColor: COLORS.primary + '20',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 16,
-  },
-  selectButton: {
-    backgroundColor: COLORS.primary,
-    padding: 12,
-    borderRadius: 6,
-    alignItems: 'center',
-  },
-  selectButtonText: {
-    color: COLORS.text.onPrimary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-}); 
+} 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, StyleSheet, Text, Dimensions, Animated, Easing } from 'react-native';
-import { COLORS } from '../utils/theme';
+import { useTheme } from '../contexts/theme-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Svg, { Circle, Line, G, Path } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
@@ -117,6 +117,7 @@ const AnimatedG = Animated.createAnimatedComponent(G);
 export function SigilDrawingScreen({ route }: Props) {
   // Update the navigation type
   const navigation = useNavigation<NavigationProp>();
+  const { colors } = useTheme();
   const { planetName, numbers } = route.params;
   const magicSquare = MAGIC_SQUARES[planetName as keyof typeof MAGIC_SQUARES];
   const [numberPositions, setNumberPositions] = useState<NumberPosition>({});
@@ -246,6 +247,55 @@ export function SigilDrawingScreen({ route }: Props) {
 
   const squareSize = cellSize * magicSquare.length;
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    squareContainer: {
+      position: 'relative',
+      aspectRatio: 1,
+      width: '90%',
+      maxWidth: 500,
+      backgroundColor: colors.surface,
+      borderRadius: 8,
+      elevation: 4,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      justifyContent: 'center',
+      alignItems: 'center',
+      overflow: 'hidden',
+    },
+    row: {
+      flexDirection: 'row',
+    },
+    cell: {
+      width: 40,
+      height: 40,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    cellText: {
+      color: colors.text.primary,
+      fontSize: 16,
+    },
+    gridContainer: {
+      position: 'absolute',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    svgContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+  });
+
   return (
     <View style={styles.container}>
       <View style={styles.squareContainer}>
@@ -283,7 +333,7 @@ export function SigilDrawingScreen({ route }: Props) {
                 y1={segment.start.y}
                 x2={segment.end.x}
                 y2={segment.end.y}
-                stroke={COLORS.primary}
+                stroke={colors.accent}
                 strokeWidth={3}
                 opacity={segment.progress}
               />
@@ -294,9 +344,9 @@ export function SigilDrawingScreen({ route }: Props) {
                 cx={numberPositions[Number(numbers[0])].x}
                 cy={numberPositions[Number(numbers[0])].y}
                 r={8}
-                stroke={COLORS.primary}
+                stroke={colors.accent}
                 strokeWidth={3}
-                fill={COLORS.background}
+                fill={colors.background}
               />
             )}
 
@@ -305,7 +355,7 @@ export function SigilDrawingScreen({ route }: Props) {
                 cx={numberPositions[Number(numbers[numbers.length - 1])].x}
                 cy={numberPositions[Number(numbers[numbers.length - 1])].y}
                 r={8}
-                fill={COLORS.primary}
+                fill={colors.accent}
               />
             )}
           </G>
@@ -313,53 +363,4 @@ export function SigilDrawingScreen({ route }: Props) {
       </View>
     </View>
   );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  squareContainer: {
-    position: 'relative',
-    aspectRatio: 1,
-    width: '90%',
-    maxWidth: 500,
-    backgroundColor: COLORS.surface,
-    borderRadius: 8,
-    elevation: 4,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  row: {
-    flexDirection: 'row',
-  },
-  cell: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  cellText: {
-    color: COLORS.text.primary,
-    fontSize: 16,
-  },
-  gridContainer: {
-    position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  svgContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-}); 
+} 

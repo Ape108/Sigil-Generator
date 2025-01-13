@@ -5,7 +5,7 @@ import { SigilDrawingScreen } from '../screens/sigil-drawing-screen';
 import SigilViewerScreen from '../screens/sigil-viewer-screen';
 import { SettingsScreen } from '../screens/settings';
 import { DonateScreen } from '../screens/donate';
-import { COLORS } from '../utils/theme';
+import { useTheme } from '../contexts/theme-context';
 import type { SigilData } from '../types/sigil';
 
 type RootStackParamList = {
@@ -25,19 +25,21 @@ type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function AppNavigator() {
+  const { colors } = useTheme();
+
   return (
     <Stack.Navigator
       initialRouteName="MainMenu"
       screenOptions={{
         headerStyle: {
-          backgroundColor: COLORS.surface,
+          backgroundColor: colors.surface,
         },
-        headerTintColor: COLORS.text.primary,
+        headerTintColor: colors.text.primary,
         headerTitleStyle: {
           fontWeight: 'bold',
         },
         contentStyle: {
-          backgroundColor: COLORS.background,
+          backgroundColor: colors.background,
         },
       }}
     >

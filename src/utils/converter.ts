@@ -54,25 +54,35 @@ interface ProcessResult {
   };
 }
 
-export function processAffirmation(input: string): ProcessResult {
-  logger.info('Processing affirmation', { input });
-  try {
-    const noSpacesVowels = removeSpacesAndVowels(input);
-    const noDuplicates = removeDuplicateLetters(noSpacesVowels);
-    const numbers = convertToNumbers(noDuplicates);
-    
-    const result = {
-      numbers,
-      steps: {
-        noSpacesVowels,
-        noDuplicates
-      }
-    };
-    
-    logger.info('Affirmation processed successfully', result);
-    return result;
-  } catch (error) {
-    logger.error('Error processing affirmation', error);
-    throw error;
+export function processAffirmation(affirmation: string) {
+  // First, remove all punctuation, spaces, and convert to lowercase
+  const cleanText = affirmation
+    .toLowerCase()
+    .replace(/['',.!-\s]/g, '')  // Remove punctuation AND spaces in one go
+    .trim();
+
+  // Remove vowels
+  const noVowels = cleanText.replace(/[aeiou]/g, '');
+  
+  // Remove duplicates
+  const noDuplicates = [...new Set(noVowels)].join('');
+  
+  // Check if we have enough letters to make a sigil
+  if (noDuplicates.length < 2) {
+    throw new Error('Not enough consonants to create a sigil. Need at least 2 unique consonants.');
   }
+  
+  // Convert to numbers
+  const numbers = noDuplicates
+    .split('')
+    .map(char => ((char.charCodeAt(0) - 97) % 9) + 1)
+    .join('');
+
+  return {
+    numbers,
+    steps: {
+      noSpacesVowels: noVowels,
+      noDuplicates
+    }
+  };
 } 
