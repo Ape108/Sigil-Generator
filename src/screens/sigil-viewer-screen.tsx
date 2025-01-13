@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, Text, Dimensions, TouchableOpacity, Animated, Switch } from 'react-native';
 import Svg, { Circle, Line, G, Defs, Mask, Rect, LinearGradient, Stop } from 'react-native-svg';
 import { useTheme } from '../contexts/theme-context';
@@ -8,6 +8,7 @@ import type { SigilData } from '../types/sigil';
 import type { RootStackParamList } from '../types/navigation';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Animated as RNAnimated } from 'react-native';
+import { Audio } from 'expo-av';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SigilViewer'>;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -19,12 +20,13 @@ interface SigilLine {
 
 const AnimatedG = RNAnimated.createAnimatedComponent(G);
 
-export default function SigilViewerScreen({ route }: Props) {
+export default function SigilViewerScreen({ route, navigation }: Props) {
   const { colors } = useTheme();
   const [showCircle, setShowCircle] = useState(true);
   const [isBurning, setIsBurning] = useState(false);
-  const navigation = useNavigation<NavigationProp>();
-  
+  const [showUI, setShowUI] = useState(true);
+  const [sound, setSound] = useState<Audio.Sound>();
+
   // Animation values
   const burnProgress = useRef(new Animated.Value(0)).current;
   const fadeOut = useRef(new Animated.Value(1)).current;
@@ -32,39 +34,114 @@ export default function SigilViewerScreen({ route }: Props) {
   const fireScale = useRef(new Animated.Value(0)).current;
   const particleSystem = useRef(new Animated.Value(0)).current;
   const sigilFade = useRef(new Animated.Value(1)).current;
+  const uiFadeAnim = useRef(new Animated.Value(1)).current;
+
+  // Prevent back navigation completely
+  useEffect(() => {
+    navigation.addListener('beforeRemove', (e) => {
+      // Prevent back navigation unless we're explicitly resetting to main menu
+      if (e.data.action.type !== 'RESET') {
+        e.preventDefault();
+      }
+    });
+  }, [navigation]);
+
+  // Load and clean up sound
+  useEffect(() => {
+    return sound
+      ? () => {
+          sound.unloadAsync();
+        }
+      : undefined;
+  }, [sound]);
+
+  const playFireSound = async () => {
+    try {
+      const { sound: fireSound } = await Audio.Sound.createAsync(
+        require('../../assets/sounds/fire.mp3'),
+        {
+          shouldPlay: true,
+          isLooping: false,
+          volume: 0.7,
+        }
+      );
+      setSound(fireSound);
+
+      // Adjust timing to account for initial UI fade (500ms)
+      const fireDuration = 500 + 2000 + 1500 + 500; // UI fade + growth + hold + fadeout
+      
+      // Start volume fade after growth and hold, accounting for initial UI fade
+      setTimeout(async () => {
+        await fireSound.setVolumeAsync(0);
+      }, 500 + 2000 + 1500); // After UI fade + growth + hold
+
+      // Stop sound after complete animation
+      setTimeout(async () => {
+        await fireSound.stopAsync();
+      }, fireDuration);
+
+    } catch (error) {
+      console.error('Error playing fire sound:', error);
+    }
+  };
 
   const handleBurnSigil = () => {
     setIsBurning(true);
     
-    Animated.parallel([
-      // Sigil fade animation - 2 seconds
-      Animated.timing(sigilFade, {
-        toValue: 0,
-        duration: 2000,
-        useNativeDriver: true
-      }),
-      // Fire animation sequence
-      Animated.sequence([
-        // Pop in and stay visible
-        Animated.spring(fireScale, {
-          toValue: 1,
-          tension: 40,
-          friction: 3,
+    // Start sound immediately
+    playFireSound();
+    
+    // First fade out UI (500ms)
+    Animated.timing(uiFadeAnim, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start(() => {
+      // Then start the burning sequence
+      Animated.parallel([
+        // Fade out sigil
+        Animated.timing(sigilFade, {
+          toValue: 0,
+          duration: 2000,
           useNativeDriver: true
         }),
-        // Wait until sigil is almost gone
-        Animated.delay(1800),
-        // Quick fade out
-        Animated.timing(fireScale, {
-          toValue: 0,
-          duration: 200,  // Quick fade at the end
-          useNativeDriver: true
-        })
-      ])
-    ]).start(() => {
-      setTimeout(() => {
-        navigation.navigate('MainMenu');
-      }, 500);
+        // Fire animation sequence
+        Animated.sequence([
+          // Fire grows
+          Animated.spring(fireScale, {
+            toValue: 1,
+            tension: 40,
+            friction: 3,
+            useNativeDriver: true
+          }),
+          // Hold fire
+          Animated.delay(1500),
+          // Fade out fire and everything else
+          Animated.parallel([
+            Animated.timing(fireScale, {
+              toValue: 0,
+              duration: 500,
+              useNativeDriver: true
+            }),
+            // Fade out the whole screen
+            Animated.timing(fadeOut, {
+              toValue: 0,
+              duration: 500,
+              useNativeDriver: true
+            })
+          ])
+        ])
+      ]).start(() => {
+        setTimeout(() => {
+          if (sound) {
+            sound.unloadAsync();
+          }
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'MainMenu' }],
+          });
+        }, 200);
+      });
     });
   };
 
@@ -191,15 +268,25 @@ export default function SigilViewerScreen({ route }: Props) {
     locations: [0, 0.3, 1],
   };
 
-  return (
-    <View style={styles.container}>
-      <Animated.View style={[styles.contentWrapper, { opacity: textFade }]}>
-        <View style={styles.promptContainer}>
-          <Text style={styles.prompt}>
-            Focus on the sigil. When you're ready, burn it and release its energy.
-          </Text>
-        </View>
+  // Add toggle function
+  const toggleUI = () => {
+    const newValue = !showUI;
+    setShowUI(newValue);
+    
+    Animated.timing(uiFadeAnim, {
+      toValue: newValue ? 1 : 0,
+      duration: 300,  // Smooth fade duration
+      useNativeDriver: true,
+    }).start();
+  };
 
+  return (
+    <TouchableOpacity 
+      style={styles.container} 
+      activeOpacity={1} 
+      onPress={toggleUI}
+    >
+      <Animated.View style={{ flex: 1, opacity: fadeOut }}>
         <View style={styles.svgContainer}>
           <Svg width={viewSize} height={viewSize}>
             <AnimatedG 
@@ -248,16 +335,35 @@ export default function SigilViewerScreen({ route }: Props) {
           </Svg>
         </View>
 
-        <View style={styles.buttonContainer}>
-          {!isBurning && (
-            <TouchableOpacity
-              style={styles.burnButton}
-              onPress={handleBurnSigil}
-            >
-              <Text style={styles.burnButtonText}>Burn Sigil</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        <Animated.View 
+          style={[
+            StyleSheet.absoluteFill,
+            { opacity: uiFadeAnim }
+          ]}
+        >
+          <View style={styles.promptContainer}>
+            <Text style={styles.prompt}>
+              Focus on the sigil. When you're ready, burn it and release its energy.
+              {'\n\n'}
+              Tap anywhere to hide interface.
+            </Text>
+          </View>
+
+          <View style={[styles.svgContainer, { opacity: 0 }]}>
+            <View style={{ width: viewSize, height: viewSize }} />
+          </View>
+
+          <View style={styles.buttonContainer}>
+            {!isBurning && (
+              <TouchableOpacity
+                style={styles.burnButton}
+                onPress={handleBurnSigil}
+              >
+                <Text style={styles.burnButtonText}>Burn Sigil</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </Animated.View>
 
         {isBurning && (
           <Animated.View 
@@ -281,17 +387,20 @@ export default function SigilViewerScreen({ route }: Props) {
             />
           </Animated.View>
         )}
-      </Animated.View>
 
-      <Animated.View style={[styles.circleToggle, { opacity: textFade }]}>
-        <Text style={styles.toggleLabel}>Circle</Text>
-        <Switch
-          value={showCircle}
-          onValueChange={setShowCircle}
-          trackColor={{ false: colors.surface, true: colors.primary + '80' }}
-          thumbColor={showCircle ? colors.primary : colors.text.secondary}
-        />
+        <Animated.View style={[
+          styles.circleToggle, 
+          { opacity: Animated.multiply(uiFadeAnim, textFade) }
+        ]}>
+          <Text style={styles.toggleLabel}>Circle</Text>
+          <Switch
+            value={showCircle}
+            onValueChange={setShowCircle}
+            trackColor={{ false: colors.surface, true: colors.primary + '80' }}
+            thumbColor={showCircle ? colors.primary : colors.text.secondary}
+          />
+        </Animated.View>
       </Animated.View>
-    </View>
+    </TouchableOpacity>
   );
 } 

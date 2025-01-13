@@ -7,6 +7,7 @@ import { SettingsScreen } from '../screens/settings';
 import { DonateScreen } from '../screens/donate';
 import { useTheme } from '../contexts/theme-context';
 import type { SigilData } from '../types/sigil';
+import { FeedbackScreen } from '../screens/feedback';
 
 type RootStackParamList = {
   MainMenu: undefined;
@@ -20,6 +21,7 @@ type RootStackParamList = {
   };
   Settings: undefined;
   Donate: undefined;
+  Feedback: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -61,7 +63,9 @@ export function AppNavigator() {
       <Stack.Screen 
         name="SigilViewer" 
         component={SigilViewerScreen}
-        options={{ title: 'View Sigil' }}
+        options={{ 
+          headerShown: false,
+        }}
       />
       <Stack.Screen 
         name="Settings" 
@@ -71,6 +75,11 @@ export function AppNavigator() {
         name="Donate" 
         component={DonateScreen}
         options={{ title: 'Support' }}
+      />
+      <Stack.Screen 
+        name="Feedback" 
+        component={FeedbackScreen}
+        options={{ title: 'Feedback' }}
       />
     </Stack.Navigator>
   );

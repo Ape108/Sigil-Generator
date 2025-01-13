@@ -11,7 +11,10 @@
       "resizeMode": "contain",
       "backgroundColor": "#1F2937"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*",
+      "assets/sounds/*"
+    ],
     "ios": {
       "supportsTablet": true
     },

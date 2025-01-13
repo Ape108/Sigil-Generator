@@ -12,4 +12,5 @@ export type RootStackParamList = {
   };
   Settings: undefined;
   Donate: undefined;
+  Feedback: undefined;
 }; 

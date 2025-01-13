@@ -73,6 +73,13 @@ export function MainMenuScreen({ navigation }: MainMenuProps) {
 
         <TouchableOpacity 
           style={styles.menuButton}
+          onPress={() => navigation.navigate('Feedback')}
+        >
+          <Text style={styles.menuButtonText}>Send Feedback</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.menuButton}
           onPress={() => navigation.navigate('Donate')}
         >
           <Text style={styles.menuButtonText}>Support the Developer</Text>

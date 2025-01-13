@@ -1,4 +1,5 @@
 import { ExpoConfig } from 'expo/config';
+import 'dotenv/config';
 
 const config: ExpoConfig = {
   name: 'Sigil Generator',
@@ -21,7 +22,11 @@ const config: ExpoConfig = {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff'
     }
-  }
+  },
+  extra: {
+    feedbackEmail: process.env.FEEDBACK_EMAIL || 'fallback@email.com',
+    stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+  },
 };
 
 export default config; 
