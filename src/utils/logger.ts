@@ -21,23 +21,30 @@ function formatMessage(level: string, message: string, data?: any): string {
 }
 
 export const logger = {
-  error: (message: string, error?: Error | unknown) => {
-    console.error(formatMessage(LOG_LEVELS.ERROR, message, error));
-  },
-
-  warn: (message: string, data?: any) => {
-    console.warn(formatMessage(LOG_LEVELS.WARN, message, data));
-  },
-
   info: (message: string, data?: any) => {
-    if (isDevEnvironment) {
-      console.info(formatMessage(LOG_LEVELS.INFO, message, data));
+    if (__DEV__) {
+      console.log(`[${new Date().toISOString()}] [INFO] ${message}`, data || '');
     }
   },
-
+  
+  error: (message: string, data?: any) => {
+    if (__DEV__) {
+      console.error(`[${new Date().toISOString()}] [ERROR] ${message}`, {
+        ...(data || {}),
+        timestamp: new Date().toISOString()
+      });
+    }
+  },
+  
   debug: (message: string, data?: any) => {
-    if (isDevEnvironment) {
-      console.debug(formatMessage(LOG_LEVELS.DEBUG, message, data));
+    if (__DEV__) {
+      console.debug(`[${new Date().toISOString()}] [DEBUG] ${message}`, data || '');
+    }
+  },
+  
+  warn: (message: string, data?: any) => {
+    if (__DEV__) {
+      console.warn(`[${new Date().toISOString()}] [WARN] ${message}`, data || '');
     }
   }
 }; 

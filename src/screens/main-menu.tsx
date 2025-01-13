@@ -1,14 +1,55 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import { COLORS, SYMBOLS } from '../utils/theme';
+import { SYMBOLS } from '../utils/theme';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../App';
+import type { RootStackParamList } from '../types/navigation';
+import { useTheme } from '../contexts/theme-context';
 
 type MainMenuProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'MainMenu'>;
 };
 
 export function MainMenuScreen({ navigation }: MainMenuProps) {
+  const { colors } = useTheme();
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 20,
+      justifyContent: 'center',
+      backgroundColor: colors.background,
+    },
+    title: {
+      fontSize: 32,
+      color: colors.text.primary,
+      textAlign: 'center',
+      marginBottom: 48,
+      fontWeight: 'bold',
+      letterSpacing: 2,
+    },
+    menuContainer: {
+      gap: 16,
+    },
+    menuButton: {
+      backgroundColor: colors.surface,
+      padding: 20,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: colors.primary,
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    menuButtonText: {
+      color: colors.text.primary,
+      fontSize: 18,
+      textAlign: 'center',
+      fontWeight: '600',
+      letterSpacing: 1,
+    },
+  });
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
@@ -39,42 +80,4 @@ export function MainMenuScreen({ navigation }: MainMenuProps) {
       </View>
     </View>
   );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    padding: 20,
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 32,
-    color: COLORS.text.primary,
-    textAlign: 'center',
-    marginBottom: 48,
-    fontWeight: 'bold',
-    letterSpacing: 2,
-  },
-  menuContainer: {
-    gap: 16,
-  },
-  menuButton: {
-    backgroundColor: COLORS.surface,
-    padding: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  menuButtonText: {
-    color: COLORS.text.primary,
-    fontSize: 18,
-    textAlign: 'center',
-    fontWeight: '600',
-    letterSpacing: 1,
-  },
-}); 
+} 

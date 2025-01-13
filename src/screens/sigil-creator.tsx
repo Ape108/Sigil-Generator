@@ -2,9 +2,9 @@ import React, { useState, useCallback } from 'react';
 import { SafeAreaView, StyleSheet, View, Text, Platform, ScrollView } from 'react-native';
 import { AffirmationInput } from '../components/affirmation-input';
 import { logger } from '../utils/logger';
-import { COLORS } from '../utils/theme';
 import { PlanetSelector } from '../components/planet-selector/planet-selector';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTheme } from '../contexts/theme-context';
 
 interface ConversionSteps {
   original: string;
@@ -24,7 +24,9 @@ type RootStackParamList = {
 type Props = NativeStackScreenProps<RootStackParamList, 'SigilCreator'>;
 
 export function SigilCreatorScreen({ navigation }: Props) {
+  const { colors } = useTheme();
   const [conversionSteps, setConversionSteps] = useState<ConversionSteps | null>(null);
+  const [isAffirmationValid, setIsAffirmationValid] = useState(false);
 
   const handleAffirmationProcessed = useCallback((
     processedNumbers: string, 
@@ -37,6 +39,7 @@ export function SigilCreatorScreen({ navigation }: Props) {
       noDuplicates: steps.noDuplicates,
       numbers: processedNumbers
     });
+    setIsAffirmationValid(true);
   }, []);
 
   const handlePlanetSelect = (planetName: string) => {
@@ -45,6 +48,65 @@ export function SigilCreatorScreen({ navigation }: Props) {
       numbers: conversionSteps?.numbers || ''
     });
   };
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    contentContainer: {
+      padding: 16,
+      paddingBottom: 32,
+    },
+    result: {
+      marginTop: 24,
+      padding: 16,
+      backgroundColor: colors.surface,
+      borderRadius: 8,
+      gap: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    resultLabel: {
+      fontSize: 18,
+      fontWeight: '600',
+      marginBottom: 8,
+      color: colors.text.primary,
+      textTransform: 'uppercase',
+      letterSpacing: 2,
+    },
+    step: {
+      gap: 4,
+      borderLeftWidth: 2,
+      borderLeftColor: colors.primary,
+      paddingLeft: 12,
+      backgroundColor: `${colors.primary}10`,
+      borderRadius: 4,
+      padding: 8,
+    },
+    stepLabel: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.text.secondary,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+    stepValue: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: colors.text.primary,
+      fontFamily: Platform.select({ ios: 'Courier', android: 'monospace' }),
+    },
+    numbers: {
+      fontSize: 32,
+      fontWeight: 'bold',
+      color: colors.accent,
+      fontFamily: Platform.select({ ios: 'Courier', android: 'monospace' }),
+      textShadowColor: colors.primary,
+      textShadowOffset: { width: 0, height: 0 },
+      textShadowRadius: 8,
+    },
+  });
 
   return (
     <ScrollView 
@@ -70,65 +132,7 @@ export function SigilCreatorScreen({ navigation }: Props) {
           </View>
         </View>
       )}
-      <PlanetSelector onSelect={handlePlanetSelect} />
+      {isAffirmationValid && <PlanetSelector onSelect={handlePlanetSelect} />}
     </ScrollView>
   );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    padding: 16,
-    paddingBottom: 32, // Extra padding at bottom for scrolling
-  },
-  result: {
-    marginTop: 24,
-    padding: 16,
-    backgroundColor: COLORS.surface,
-    borderRadius: 8,
-    gap: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  resultLabel: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: COLORS.text.primary,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-  },
-  step: {
-    gap: 4,
-    borderLeftWidth: 2,
-    borderLeftColor: COLORS.primary,
-    paddingLeft: 12,
-    backgroundColor: 'rgba(159, 122, 234, 0.05)',
-    borderRadius: 4,
-    padding: 8,
-  },
-  stepLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.text.secondary,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  stepValue: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: COLORS.text.primary,
-    fontFamily: Platform.select({ ios: 'Courier', android: 'monospace' }),
-  },
-  numbers: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: COLORS.accent,
-    fontFamily: Platform.select({ ios: 'Courier', android: 'monospace' }),
-    textShadowColor: COLORS.primary,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
-  },
-}); 
+} 

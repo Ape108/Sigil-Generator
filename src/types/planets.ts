@@ -1,4 +1,4 @@
-export interface PlanetDescription {
+export interface Planet {
   name: string;
   title: string;
   description: string;
@@ -7,54 +7,54 @@ export interface PlanetDescription {
   effects: string;
 }
 
-export const PLANET_DATA: PlanetDescription[] = [
+export const PLANETS: Planet[] = [
   {
-    name: "Mercury",
-    title: "The Messenger",
-    description: "Associated with communication, intellect, and travel. Connected to the Greek god Hermes and Egyptian Thoth.",
-    keywords: ["Communication", "Intelligence", "Travel", "Learning"],
-    occultSignificance: "Rules communication, travel, intellect, and thought processes.",
-    effects: "Best for affirmations related to learning, communication, writing, or intellectual pursuits."
+    name: "Saturn",
+    title: "The Teacher",
+    description: "Associated with discipline, structure, and long-term achievements. Governs boundaries and limitations.",
+    keywords: ["Discipline", "Structure", "Time", "Karma"],
+    occultSignificance: "Represents tests, challenges, and wisdom gained through experience.",
+    effects: "Best for manifestations requiring patience and long-term dedication."
   },
   {
-    name: "Venus",
-    title: "The Harmonizer",
-    description: "Symbolizes love, beauty, art, and attraction. Embodies the principle of unity.",
-    keywords: ["Love", "Beauty", "Art", "Harmony"],
-    occultSignificance: "Governs love, beauty, and harmony in relationships and artistic expression.",
-    effects: "Ideal for affirmations about love, relationships, art, or self-worth."
+    name: "Jupiter",
+    title: "The Benefactor",
+    description: "Planet of expansion, abundance, and good fortune. Brings growth and opportunity.",
+    keywords: ["Expansion", "Abundance", "Wisdom", "Fortune"],
+    occultSignificance: "Amplifies positive energies and brings opportunities for growth.",
+    effects: "Excellent for prosperity and success-related intentions."
   },
   {
     name: "Mars",
     title: "The Warrior",
-    description: "Represents drive, aggression, and courage. Embodies the principle of dynamic force.",
-    keywords: ["Courage", "Action", "Energy", "Ambition"],
-    occultSignificance: "Drives ambition, energy, and courage in material pursuits.",
-    effects: "Perfect for affirmations about strength, courage, achievement, or overcoming obstacles."
-  },
-  {
-    name: "Jupiter",
-    title: "The Expander",
-    description: "The planet of expansion, abundance, and wisdom. Represents spiritual blessings and growth.",
-    keywords: ["Expansion", "Abundance", "Wisdom", "Growth"],
-    occultSignificance: "Brings expansion, wisdom, and prosperity through alignment with divine wisdom.",
-    effects: "Excellent for affirmations about prosperity, wisdom, growth, or spiritual development."
-  },
-  {
-    name: "Saturn",
-    title: "The Teacher",
-    description: "Symbolizes boundaries, limitations, discipline, and time. Associated with life's important lessons.",
-    keywords: ["Discipline", "Structure", "Time", "Wisdom"],
-    occultSignificance: "Teaches through discipline, time, and karma. Associated with transformation.",
-    effects: "Best for affirmations about discipline, long-term goals, or overcoming limitations."
+    description: "Embodies energy, passion, and drive. Rules over action and courage.",
+    keywords: ["Action", "Energy", "Courage", "Strength"],
+    occultSignificance: "Provides the drive and energy to accomplish goals.",
+    effects: "Perfect for goals requiring motivation and decisive action."
   },
   {
     name: "Sun",
-    title: "The Illuminator",
-    description: "Represents the self, vitality, and core essence of being. Symbolizes the divine spark within.",
-    keywords: ["Vitality", "Self-expression", "Leadership", "Success"],
-    occultSignificance: "Governs vitality, ego, and the core self. Represents the journey to enlightenment.",
-    effects: "Ideal for affirmations about personal power, success, health, or self-realization."
+    title: "The Life-Giver",
+    description: "Represents vitality, self-expression, and personal power.",
+    keywords: ["Vitality", "Power", "Success", "Leadership"],
+    occultSignificance: "Central force of manifestation and personal empowerment.",
+    effects: "Ideal for personal growth and self-empowerment intentions."
+  },
+  {
+    name: "Venus",
+    title: "The Harmonizer",
+    description: "Rules love, beauty, and harmony. Brings pleasure and artistic expression.",
+    keywords: ["Love", "Beauty", "Harmony", "Art"],
+    occultSignificance: "Attracts love, beauty, and positive relationships.",
+    effects: "Best for love, art, and relationship-focused intentions."
+  },
+  {
+    name: "Mercury",
+    title: "The Messenger",
+    description: "Governs communication, learning, and travel. Facilitates exchange of ideas.",
+    keywords: ["Communication", "Learning", "Travel", "Trade"],
+    occultSignificance: "Enhances mental abilities and communication.",
+    effects: "Great for learning, communication, and travel intentions."
   },
   {
     name: "Moon",
@@ -62,6 +62,6 @@ export const PLANET_DATA: PlanetDescription[] = [
     description: "Linked to emotions, intuition, and the subconscious mind. Mirrors the mysteries of the inner world.",
     keywords: ["Intuition", "Emotions", "Subconscious", "Dreams"],
     occultSignificance: "Influences emotions, moods, and intuitive understanding.",
-    effects: "Perfect for affirmations about emotional healing, intuition, or inner work."
+    effects: "Perfect for emotional healing and inner work intentions."
   }
 ]; 
