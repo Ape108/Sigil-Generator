@@ -3,10 +3,10 @@ import { View, StyleSheet, Text, TouchableOpacity, Alert, Linking } from 'react-
 import { useTheme } from '../contexts/theme-context';
 
 const DONATION_LINKS = [
-  { amount: 5, label: '$5', url: 'https://donate.stripe.com/test_00g7sz2Ta2cwe4w6oo' },
-  { amount: 10, label: '$10', url: 'https://donate.stripe.com/test_dR6eV151i4kE4tWfYZ' },
-  { amount: 20, label: '$20', url: 'https://donate.stripe.com/test_8wM4gn9hybN63pS5km' },
-  { amount: 50, label: '$50', url: 'https://donate.stripe.com/test_6oE00751i6sMaSk7sv' },
+  { amount: 5, label: '$5', url: 'https://donate.stripe.com/7sI14O86A2KIa7S7ss' },
+  { amount: 10, label: '$10', url: 'https://donate.stripe.com/bIYdRA9aEetqdk49AB' },
+  { amount: 20, label: '$20', url: 'https://donate.stripe.com/9AQaFo5Ysdpm93OaEG' },
+  { amount: 50, label: '$50', url: 'https://donate.stripe.com/14kbJseuYfxu7ZK8wz' },
 ];
 
 export function DonateScreen() {
