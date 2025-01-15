@@ -6,11 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#1F2937"
-    },
+    "splash": null,
     "assetBundlePatterns": [
       "**/*",
       "assets/sounds/*"

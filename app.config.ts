@@ -8,11 +8,6 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
-  splash: {
-    image: './assets/splash.png',
-    resizeMode: 'contain',
-    backgroundColor: '#1F2937'
-  },
   assetBundlePatterns: ['**/*', 'assets/sounds/*'],
   ios: {
     supportsTablet: true
@@ -31,6 +26,7 @@ const config: ExpoConfig = {
     },
     feedbackEmail: process.env.EXPO_PUBLIC_FEEDBACK_EMAIL || 'fallback@email.com',
   },
+  splash: null,
 };
 
 export default config; 

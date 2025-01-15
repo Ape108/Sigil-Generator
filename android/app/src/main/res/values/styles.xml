@@ -1,0 +1,3 @@
+<style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <!-- Remove any references to splashscreen_logo -->
+</style> 
