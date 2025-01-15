@@ -8,25 +8,25 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
-  splash: {
-    image: './assets/splash.png',
-    resizeMode: 'contain',
-    backgroundColor: '#ffffff'
-  },
-  assetBundlePatterns: ['**/*'],
+  assetBundlePatterns: ['**/*', 'assets/sounds/*'],
   ios: {
     supportsTablet: true
   },
   android: {
+    package: "com.ape108.sigilgenerator",
+    versionCode: 1,
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#ffffff'
+      backgroundColor: '#1F2937'
     }
   },
   extra: {
-    feedbackEmail: process.env.FEEDBACK_EMAIL || 'fallback@email.com',
-    stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+    eas: {
+      projectId: "2013d163-65a8-4340-9771-08b12c65f3c2"
+    },
+    feedbackEmail: process.env.EXPO_PUBLIC_FEEDBACK_EMAIL || 'fallback@email.com',
   },
+  splash: null,
 };
 
 export default config; 
